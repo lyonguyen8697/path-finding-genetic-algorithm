@@ -3,8 +3,7 @@ from pygame.math import Vector2
 from pygame import Rect
 from Environment import Environment
 from Population import Population
-from Destination import Destination
-from Obstacle import Obstacle
+from Object import Object
 
 class Main:
 
@@ -27,27 +26,27 @@ class Main:
 
     def create_environment(self):
         environment = Environment(rect=Rect((0, 0), (self.width, self.height)))
-        destination = Destination(size=(10, 100), position=Vector2(1200, 360))
+        destination = Object(size=(10, 100), position=Vector2(1200, 360), color=(0, 255, 0))
         population1 = Population(destination=destination, size=20, position=Vector2(100, 360))
         population2 = Population(destination=destination, size=20, position=Vector2(100, 360), color=(238, 244, 66))
         population3 = Population(destination=destination, size=20, position=Vector2(100, 360), color=(65, 244, 145))
         population4 = Population(destination=destination, size=20, position=Vector2(100, 360), color=(238, 65, 244))
-        obstacle1 = Obstacle(size=(10, 200), position=Vector2(640, 360))
-        obstacle2 = Obstacle(size=(10, 200), position=Vector2(400, 360))
+        obstacle1 = Object(size=(10, 200), position=Vector2(640, 200))
+        obstacle2 = Object(size=(10, 200), position=Vector2(640, 520))
 
-        environment.add(population1)
-        environment.add(population2)
-        environment.add(population3)
-        environment.add(population4)
-        environment.add(destination)
-        environment.add(obstacle1)
-        #environment.add(obstacle2)
+        environment.add_population(population1)
+        environment.add_population(population2)
+        environment.add_population(population3)
+        environment.add_population(population4)
+        environment.add_obstacle(destination)
+        environment.add_obstacle(obstacle1)
+        environment.add_obstacle(obstacle2)
 
         return environment
 
     def create_text(self, text, font="Comic San MS", size=30):
         font = pygame.font.SysFont(font, size)
-        return font.render(text, False, (0, 0, 0))
+        return font.render(text, True, (0, 0, 0))
 
     def render_generation_number(self, screen, environment):
         generation_number = environment.populations[0].generation_number
@@ -82,7 +81,8 @@ class Main:
         pygame.display.flip()
 
     def handle(self, event):
-        pass
+        for o in self.objects:
+            o.handle(event)
 
 
 if __name__ == "__main__":
