@@ -1,16 +1,17 @@
 import random as rand
 from pygame.math import Vector2
 from Creature import Creature
+import utils
 
 
 class Population:
 
-    def __init__(self, destination, size=20, mutationRate=0.005 , lifetime=200, position=None, velocity=None, color=None):
+    def __init__(self, destination, size=20, mutation_rate=0.01 , lifetime=300, position=None, velocity=None, color=None):
         self.destination = destination
         self.size = size
-        self.mutationRate = mutationRate
+        self.mutation_rate = mutation_rate
         self.lifetime = lifetime
-        self.generationNumber = 1
+        self.generation_number = 1
         self.age = 0
         self.color = color or (0, 0, 255)
 
@@ -24,7 +25,8 @@ class Population:
         while len(self.creatures) < self.size:
             pos = Vector2(self.position)
             vel = Vector2(self.velocity)
-            self.creatures.append(Creature(lifetime=self.lifetime, position=pos, velocity=vel, color=self.color))
+            creature = Creature(lifetime=self.lifetime, position=pos, velocity=vel, color=self.color)
+            self.creatures.append(creature)
 
     def draw(self, screen):
         for creature in self.creatures:
@@ -33,62 +35,49 @@ class Population:
     def update(self):
         for creature in self.creatures:
             creature.update()
-            self.checkCollision(creature)
+            self.check_collision(creature)
 
         self.age += 1
         if self.age >= self.lifetime:
             self.generate()
             self.age = 0
+        # if self.age >= self.lifetime or all(creature.stuck or creature.reached for creature in self.creatures):
+        #     self.generate()
+        #     self.age = 0
 
-    def checkCollision(self, creature):
+    def check_collision(self, creature):
         if creature.body.colliderect(self.destination.body):
             creature.reached = True
-            return
-        if creature.body.collidelist([obstacle.body for obstacle in self.environment.obstacles]) != -1:
+        elif creature.body.collidelist([obstacle.body for obstacle in self.environment.obstacles]) != -1 \
+                or (self.environment.rect and not self.environment.rect.contains(creature.body)):
             creature.stuck = True
 
     def generate(self):
-        self.calcFitness()
+        self.calc_fitness()
         self.mate()
         self.mutate()
-        self.generationNumber += 1
+        self.generation_number += 1
 
     def mate(self):
-        newPopulation = []
+        new_population = []
         count = 0
-        self.calcMatingRate()
         while count < self.size:
-            parent1 = self.selectOne()
-            parent2 = self.selectOne()
+            parent1 = utils.choice_distribution(self.creatures, lambda x: x.dna.fitness)
+            parent2 = utils.choice_distribution(self.creatures, lambda x: x.dna.fitness, recalc=False)
 
             while parent1 == parent2:
-                parent2 = self.selectOne()
+                parent2 = utils.choice_distribution(self.creatures, lambda x: x.dna.fitness, recalc=False)
 
             child = parent1.mate(parent2, self.position, self.velocity)
-            newPopulation.append(child)
+            new_population.append(child)
             count += 1
 
-        self.creatures = newPopulation
+        self.creatures = new_population
 
     def mutate(self):
         for creature in self.creatures:
-            creature.mutate(self.mutationRate)
+            creature.mutate(self.mutation_rate)
 
-    def calcFitness(self):
+    def calc_fitness(self):
         for creature in self.creatures:
-            creature.calcFitness(self.destination.position)
-
-    def calcMatingRate(self):
-        total = sum(creature.dna.fitness for creature in self.creatures)
-        for creature in self.creatures:
-            creature.matingRate = creature.dna.fitness / total
-
-    def selectOne(self):
-        r = rand.uniform(0, 1)
-        s = 0
-        for creature in self.creatures:
-            s += creature.matingRate
-            if s >= r:
-                return creature
-        return creature
-
+            creature.calc_fitness(self.destination.position)

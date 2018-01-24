@@ -1,3 +1,4 @@
+from pygame import Rect
 from Population import Population
 from Destination import Destination
 from Obstacle import Obstacle
@@ -5,18 +6,20 @@ from Obstacle import Obstacle
 
 class Environment:
 
-    def __init__(self):
+    def __init__(self, rect=None):
         self.populations = []
         self.destinations = []
         self.obstacles = []
 
-    def draw(self, screen):
-        for o in self.populations + self.destinations + self.obstacles:
-            o.draw(screen)
+        self.rect = rect
 
     def update(self):
         for o in self.populations + self.destinations + self.obstacles:
             o.update()
+
+    def draw(self, screen):
+        for o in self.populations + self.destinations + self.obstacles:
+            o.draw(screen)
 
     def add(self, o):
         if isinstance(o, Population):

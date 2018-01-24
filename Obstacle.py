@@ -9,13 +9,13 @@ class Obstacle:
         self.size = size or (10, 100)
         self.position = position or Vector2()
 
-        self.color = color or (255, 255, 255)
+        self.color = color or (0, 0, 0)
 
         self.body = Rect((0, 0), self.size)
         self.body.center = self.position
 
-    def draw(self, screen):
-        pygame.draw.rect(screen, self.color, self.body)
-
     def update(self):
         pass
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, self.color, self.body)

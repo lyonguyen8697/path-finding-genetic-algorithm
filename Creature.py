@@ -1,17 +1,27 @@
 import pygame
+from pygame import gfxdraw
 from pygame.math import Vector2
 from pygame import Rect
+from pygame import Surface
 from DNA import DNA
 import utils
 import math
 
 
+def create_body(color):
+    original_image = Surface((16, 16), pygame.SRCALPHA)
+    gfxdraw.aatrigon(original_image, 8, 0, 2, 16, 14, 16, color)
+    gfxdraw.filled_trigon(original_image, 8, 0, 2, 16, 14, 16, color)
+    return original_image
+
+
 class Creature:
 
     def __init__(self, dna=None, lifetime=200, position=None, velocity=None, color=None):
-        self.dna = dna or DNA(genesLen=lifetime)
+        self.dna = dna or DNA(genes_len=lifetime)
         self.lifetime = lifetime
         self.step = 0
+        self.color = color
 
         self.position = position or Vector2()
         self.velocity = velocity or Vector2()
@@ -19,12 +29,9 @@ class Creature:
         self.reached = False
         self.stuck = False
 
-        self.body = Rect((0, 0, 10, 10))
-        self.body.center = self.position
-        self.color = color or (0, 0, 255)
-
-    def draw(self, screen):
-        pygame.draw.rect(screen, self.color, self.body)
+        self.original_image = create_body(color)
+        self.image = self.original_image
+        self.body = self.original_image.get_rect(center=self.position)
 
     def update(self):
         if self.reached or self.stuck:
@@ -37,7 +44,11 @@ class Creature:
         self.position += self.velocity
         self.acceleration = Vector2()
 
+        self.image = pygame.transform.rotate(self.original_image, self.velocity.angle_to((0, -1)))
         self.body.center = self.position
+
+    def draw(self, screen):
+        screen.blit(self.image, self.body)
 
     def move(self, force):
         self.acceleration += force
@@ -51,7 +62,7 @@ class Creature:
     def mutate(self, mutateRate):
         self.dna.mutate(mutateRate)
 
-    def calcFitness(self, destination):
+    def calc_fitness(self, destination):
         if self.reached:
             self.dna.fitness = (pow(self.lifetime, 2) / pow(self.step, 2)) * 10
             return
@@ -61,6 +72,7 @@ class Creature:
 
         if self.stuck:
             self.dna.fitness /= 10
+
 
 
 

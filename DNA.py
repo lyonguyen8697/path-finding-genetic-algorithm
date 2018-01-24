@@ -5,30 +5,30 @@ import utils
 
 class DNA:
 
-    def __init__(self, genesLen=200, genes=None):
-        self.genesLen = genesLen
+    def __init__(self, genes_len=200, genes=None):
+        self.genes_len = genes_len
         self.fitness = 0
 
         if not genes:
             self.random()
         else:
             self.genes = genes
-            self.genesLen = len(genes)
+            self.genes_len = len(genes)
 
     def random(self):
         self.genes = []
-        for i in range(self.genesLen):
-            self.genes.append(utils.randomVec2())
+        for i in range(self.genes_len):
+            self.genes.append(utils.random_vec2())
 
     def mate(self, other):
-        pivot = rand.randrange(self.genesLen)
+        pivot = rand.randrange(self.genes_len)
 
-        child = self.genes[:self.genesLen] + other.genes[self.genesLen:]
+        child = self.genes[:self.genes_len] + other.genes[self.genes_len:]
 
         return DNA(genes=child)
 
-    def mutate(self, mutationRate):
-        for i in range(self.genesLen):
-            if rand.uniform(0, 1) < mutationRate:
-                self.genes[i] = utils.randomVec2()
+    def mutate(self, mutation_rate):
+        for i in range(self.genes_len):
+            if rand.uniform(0, 1) < mutation_rate:
+                self.genes[i] = utils.random_vec2()
 

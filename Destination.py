@@ -13,8 +13,10 @@ class Destination:
         self.body = Rect((0, 0), self.size)
         self.body.center = self.position
 
+    def update(self):
+        pass
+
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.body)
 
-    def update(self):
-        pass
+

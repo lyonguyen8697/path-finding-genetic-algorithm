@@ -1,5 +1,6 @@
 import sys, pygame
 from pygame.math import Vector2
+from pygame import Rect
 from Environment import Environment
 from Population import Population
 from Destination import Destination
@@ -10,7 +11,7 @@ class Main:
     width = 1280
     height = 720
 
-    backgroundColor = (95, 183, 229)
+    background_color = (67, 209, 216)
 
     objects = []
     texts = []
@@ -22,16 +23,17 @@ class Main:
         self.clock = pygame.time.Clock()
         self.time_step = 0
 
-        self.objects.append(self.createEnvironment())
+        self.objects.append(self.create_environment())
 
-    def createEnvironment(self):
-        environment = Environment()
+    def create_environment(self):
+        environment = Environment(rect=Rect((0, 0), (self.width, self.height)))
         destination = Destination(size=(10, 100), position=Vector2(1200, 360))
         population1 = Population(destination=destination, size=20, position=Vector2(100, 360))
-        population2 = Population(destination=destination, size=20, position=Vector2(100, 360), color=(255, 0, 0))
-        population3 = Population(destination=destination, size=20, position=Vector2(100, 360), color=(166, 0, 45))
-        population4 = Population(destination=destination, size=20, position=Vector2(100, 360), color=(50, 30, 168))
-        obstacle1 = Obstacle(size=(10, 200), position=Vector2(640, 320))
+        population2 = Population(destination=destination, size=20, position=Vector2(100, 360), color=(238, 244, 66))
+        population3 = Population(destination=destination, size=20, position=Vector2(100, 360), color=(65, 244, 145))
+        population4 = Population(destination=destination, size=20, position=Vector2(100, 360), color=(238, 65, 244))
+        obstacle1 = Obstacle(size=(10, 200), position=Vector2(640, 360))
+        obstacle2 = Obstacle(size=(10, 200), position=Vector2(400, 360))
 
         environment.add(population1)
         environment.add(population2)
@@ -39,17 +41,18 @@ class Main:
         environment.add(population4)
         environment.add(destination)
         environment.add(obstacle1)
+        #environment.add(obstacle2)
 
         return environment
 
-    def createText(self, text, font="Comic San MS", size=30):
+    def create_text(self, text, font="Comic San MS", size=30):
         font = pygame.font.SysFont(font, size)
         return font.render(text, False, (0, 0, 0))
 
-    def renderGenerationNumber(self, screen, environment):
-        generationNumber = environment.populations[0].generationNumber
-        text = self.createText("Generation: %s" % generationNumber)
-        screen.blit(text, (0, 0))
+    def render_generation_number(self, screen, environment):
+        generation_number = environment.populations[0].generation_number
+        text = self.create_text("Generation: %s" % generation_number)
+        screen.blit(text, (10, 10))
 
     def run(self):
         while True:
@@ -61,22 +64,22 @@ class Main:
                     sys.exit()
                 self.handle(event)
 
-            self.update(dt / 1000)
+            self.update(self.screen, dt / 1000)
             self.draw(self.screen)
 
+    def update(self, screen, dt):
+        for o in self.objects:
+            o.update()
+
     def draw(self, screen):
-        screen.fill(self.backgroundColor)
+        screen.fill(self.background_color)
 
         for o in self.objects:
             o.draw(screen)
             if isinstance(o, Environment):
-                self.renderGenerationNumber(screen, o)
+                self.render_generation_number(screen, o)
 
         pygame.display.flip()
-
-    def update(self, dt):
-        for o in self.objects:
-            o.update()
 
     def handle(self, event):
         pass
