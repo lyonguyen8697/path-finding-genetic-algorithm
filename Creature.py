@@ -1,11 +1,9 @@
 import pygame
 from pygame import gfxdraw
 from pygame.math import Vector2
-from pygame import Rect
 from pygame import Surface
 from DNA import DNA
 import utils
-import math
 
 
 def create_body(color):
@@ -32,6 +30,7 @@ class Creature:
         self.original_image = create_body(color)
         self.image = self.original_image
         self.body = self.original_image.get_rect(center=self.position)
+        self.body.size = (10, 10)
 
     def update(self):
         if self.reached or self.stuck:
@@ -41,7 +40,7 @@ class Creature:
             self.step += 1
 
         self.velocity += self.acceleration
-        self.position += self.velocity
+        self.position += utils.round_vec2(self.velocity)
         self.acceleration = Vector2()
 
         self.image = pygame.transform.rotate(self.original_image, self.velocity.angle_to((0, -1)))
@@ -59,8 +58,14 @@ class Creature:
         vel = Vector2(velocity) if velocity else None
         return Creature(dna=dna, lifetime=self.lifetime, position=pos, velocity=vel, color=self.color)
 
-    def mutate(self, mutateRate):
-        self.dna.mutate(mutateRate)
+    def mate_twins(self, other, position=None, velocity=None):
+        dna = self.dna.mate_twins(other.dna)
+        pos1, pos2 = Vector2(position), Vector2(position) if position else Vector2()
+        vel1, vel2 = Vector2(velocity), Vector2(velocity) if velocity else None
+        return [Creature(dna[0], self.lifetime, pos1, vel1, self.color), Creature(dna[1], self.lifetime, pos2, vel2, self.color)]
+
+    def mutate(self, mutation_rate):
+        self.dna.mutate(mutation_rate)
 
     def calc_fitness(self, destination):
         if self.reached:
@@ -72,8 +77,3 @@ class Creature:
 
         if self.stuck:
             self.dna.fitness /= 10
-
-
-
-
-

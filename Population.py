@@ -6,14 +6,15 @@ import utils
 
 class Population:
 
-    def __init__(self, destination, size=20, mutation_rate=0.01 , lifetime=300, position=None, velocity=None, color=None):
+    def __init__(self, destination, size=20, mutation_rate=0.01, lifetime=300, position=None, velocity=None, color=None):
         self.destination = destination
         self.size = size
         self.mutation_rate = mutation_rate
         self.lifetime = lifetime
         self.generation_number = 1
         self.age = 0
-        self.color = color or (0, 0, 255)
+        self.record = None
+        self.color = color or (51, 102, 255)
 
         self.position = position or Vector2()
         self.velocity = velocity or Vector2()
@@ -28,6 +29,13 @@ class Population:
             creature = Creature(lifetime=self.lifetime, position=pos, velocity=vel, color=self.color)
             self.creatures.append(creature)
 
+    def reset(self):
+        self.generation_number = 1
+        self.age = 0
+
+        self.creatures = []
+        self.fill()
+
     def draw(self, screen):
         for creature in self.creatures:
             creature.draw(screen)
@@ -36,6 +44,7 @@ class Population:
         for creature in self.creatures:
             creature.update()
             self.check_collision(creature)
+            self.update_record(creature)
 
         self.age += 1
         if self.age >= self.lifetime:
@@ -51,10 +60,21 @@ class Population:
         elif creature.body.collidelist([obstacle.body for obstacle in self.environment.obstacles]) != -1 \
                 or (self.environment.rect and not self.environment.rect.contains(creature.body)):
             creature.stuck = True
+        else:
+            creature.stuck = False
+
+    def update_record(self, creature):
+        if creature.reached:
+            if self.record:
+                if creature.step < self.record:
+                    self.record = creature.step
+            else:
+                self.record = creature.step
 
     def generate(self):
         self.calc_fitness()
         self.mate()
+        # self.mate_twins()
         self.mutate()
         self.generation_number += 1
 
@@ -71,6 +91,20 @@ class Population:
             child = parent1.mate(parent2, self.position, self.velocity)
             new_population.append(child)
             count += 1
+
+        self.creatures = new_population
+
+    def mate_twins(self):
+        new_population = []
+        while len(new_population) < self.size:
+            parent1 = utils.choice_distribution(self.creatures, lambda x: x.dna.fitness)
+            parent2 = utils.choice_distribution(self.creatures, lambda x: x.dna.fitness, recalc=False)
+
+            while parent1 == parent2:
+                parent2 = utils.choice_distribution(self.creatures, lambda x: x.dna.fitness, recalc=False)
+
+            children = parent1.mate_twins(parent2, self.position, self.velocity)
+            new_population += children
 
         self.creatures = new_population
 
